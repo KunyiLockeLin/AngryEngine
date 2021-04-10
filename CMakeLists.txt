@@ -66,7 +66,7 @@ target_link_libraries(exe_TestUI PRIVATE debug common_debug optimized common)
 
 
 #lib gpu
-add_library(lib_gpu SHARED gpu/vulkan_objects.h gpu/vulkan_objects.cpp gpu/graphics.h gpu/graphics.cpp)
+add_library(lib_gpu SHARED gpu/vulkan_objects.h gpu/vulkan_objects.cpp gpu/gpu_objects.h gpu/gpu_objects.cpp)
 
 set_target_properties(lib_gpu PROPERTIES LINK_FLAGS /SUBSYSTEM:CONSOLE)
 set_target_properties(lib_gpu PROPERTIES OUTPUT_NAME_DEBUG gpu_debug)
@@ -84,7 +84,7 @@ add_custom_command(TARGET lib_ui POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_
 
 
 #exe TestGPU
-add_executable(exe_TestGPU gpu/vulkan_objects.h gpu/vulkan_objects.cpp gpu/graphics.h gpu/graphics.cpp gpu/test_main.cpp)
+add_executable(exe_TestGPU gpu/vulkan_objects.h gpu/vulkan_objects.cpp gpu/gpu_objects.h gpu/gpu_objects.cpp gpu/test_main.cpp)
 
 set_target_properties(exe_TestGPU PROPERTIES LINK_FLAGS /SUBSYSTEM:WINDOWS)
 set_target_properties(exe_TestGPU PROPERTIES OUTPUT_NAME_DEBUG TestGPU_debug)
