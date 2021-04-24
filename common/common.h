@@ -77,6 +77,33 @@
     Qe##parent_component_type::initialize(_property, _owner); \
     component_data.read(*_property); \
 */
+
+#define BEGIN_NAMESPACE(x) namespace x {
+#define END_NAMESPACE(x) }
+
+#define SINGLETON_OBJECT(class_name)    \
+   private:                             \
+    class_name();                       \
+                                        \
+   public:                              \
+    static class_name &get_instance() { \
+        static class_name instance;     \
+        return instance;                \
+    }
+
+#define OBJECT_KEY(class_name, friend_name) \
+    class DllExport class_name {            \
+        friend class friend_name;           \
+                                            \
+       private:                             \
+        class_name() {}                     \
+    };
+
+#define MANAGED_OBJECT(class_name, key_name) \
+   public:                                   \
+    class_name(const key_name &key);         \
+    static std::shared_ptr<class_name> create(const key_name &key) { return std::make_shared<class_name>(key); }
+
 // template class DllExport std::vector<std::string>;
 // template class DllExport std::basic_string<char>;
 
