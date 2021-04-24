@@ -10,7 +10,7 @@
                 <components>
                     <!--test test test 4444-->
                     <Transform type="1" oid="100" eid="1" position="0 0 0" scale="1 1 1" faceEular="0 0 0" rotateSpeed="0 0 0" revoluteSpeed="0 0 0" revoluteFixAxis="0 0 0" targetAnimationOID="0" targetBoneName="" />
-					<!--test test test 5555-->
+                    <!--test test test 5555-->
                     <Axis type="13" oid="100" eid="1" />
                 </components>
                 <children>
@@ -521,7 +521,7 @@
             <particle type="1000" oid="800" eid="800">
                 <components>
                     <Transform type="1" oid="800" eid="1" position="0 0 0" scale="1 1 1" faceEular="0 0 0" rotateSpeed="0 0 0" revoluteSpeed="0 0 0" revoluteFixAxis="0 0 0" targetAnimationOID="0" targetBoneName="" />
-					<Particle type="10" oid="800" eid="1" image="light.png" alpha="1" reborn="1" bornTargetTranformOID="401" count_once="5" count_period="10" count_total="100" count_range="0" life_second="2" life_range="5" init_pos_volume="1 0.5 0" init_pos_volume_range="0 0 0" init_pos_radius="0" init_pos_radius_range="0" init_pos_degree="0" init_pos_degree_range="0" init_speed="-0.3 -0.3 1" init_speed_range="0.6 0.6 2" force="0 0 -2" force_range="0 0 1" size="0.6 0.6" size_range="0 0" color="0 0 0" color_range="1 1 1" />
+                    <Particle type="10" oid="800" eid="1" image="light.png" alpha="1" reborn="1" bornTargetTranformOID="401" count_once="5" count_period="10" count_total="100" count_range="0" life_second="2" life_range="5" init_pos_volume="1 0.5 0" init_pos_volume_range="0 0 0" init_pos_radius="0" init_pos_radius_range="0" init_pos_degree="0" init_pos_degree_range="0" init_speed="-0.3 -0.3 1" init_speed_range="0.6 0.6 2" force="0 0 -2" force_range="0 0 1" size="0.6 0.6" size_range="0 0" color="0 0 0" color_range="1 1 1" />
                 </components>
                 <children />
             </particle>
@@ -823,11 +823,11 @@
     <components>
         <Transform>
             <define position="float 3" scale="float 3" faceEular="float 3" rotateSpeed="float 3" revoluteSpeed="float 3" revoluteFixAxis="bool 3" targetAnimationOID="ID" targetBoneName="std::string" />
-			<default type="1" oid="0" eid="0" position="0 0 0" scale="1 1 1" faceEular="0 0 0" rotateSpeed="0 0 0" revoluteSpeed="0 0 0" revoluteFixAxis="0 0 0" targetAnimationOID="0" targetBoneName="" />
+            <default type="1" oid="0" eid="0" position="0 0 0" scale="1 1 1" faceEular="0 0 0" rotateSpeed="0 0 0" revoluteSpeed="0 0 0" revoluteFixAxis="0 0 0" targetAnimationOID="0" targetBoneName="" />
         </Transform>
         <Camera>
             <define renderType="enum" renderSize="int 2" lookAtTransformOID="ID" up="float 3" fov="float" fnear="float" ffar="float" aperture="float" speed="float" cullingDistance="float" raytracingDepth="int" postProcessingOID="ID" />
-			<default type="2" oid="0" eid="0" renderType="2" renderSize="0 0" lookAtTransformOID="0" up="0 0 1" fov="45" fnear="0.1" ffar="1000" aperture="2.0" speed="0.5" cullingDistance="1000" raytracingDepth="0" postProcessingOID="0" />
+            <default type="2" oid="0" eid="0" renderType="2" renderSize="0 0" lookAtTransformOID="0" up="0 0 1" fov="45" fnear="0.1" ffar="1000" aperture="2.0" speed="0.5" cullingDistance="1000" raytracingDepth="0" postProcessingOID="0" />
         </Camera>
         <PostProcessing>
             <define vert="std::string" tesc="std::string" tese="std::string" geom="std::string" frag="std::string" param="float 4" />
@@ -840,7 +840,7 @@
           <default type="4" oid="0" eid="0" lightType="0" color="1 1 1" intensity="1000" coneAngle="90" />
         </Light>
         <Line>
-		    <define targetTransformOID="ID" color="float 3" />
+            <define targetTransformOID="ID" color="float 3" />
             <default type="5" oid="0" eid="0" targetTransformOID="0" color="0 0 0" />
         </Line>
         <Model>
@@ -853,7 +853,7 @@
           <default type="7" oid="0" eid="0" obj="animation.gltf" outlineWidth="0" actionState="1" actionSpeed="1" actionID="0" actionPlayType="2" materialOID="0" />
         </Animation>
         <Plane>
-			<define planeType="enum" materialOID="ID" targetCameraOID="ID" />
+            <define planeType="enum" materialOID="ID" targetCameraOID="ID" />
             <default type="8" oid="0" eid="0" planeType="0" materialOID="0" targetCameraOID="0" />
             <billboard type="8" oid="0" eid="1" planeType="1" materialOID="0" targetCameraOID="0" />
         </Plane>
@@ -863,7 +863,7 @@
         </Cubemap>
       <Particle>
             <define image="std::string" alpha="bool" reborn="bool" bornTargetTranformOID="ID" count_once="int" count_period="int" count_total="int" count_range="int" life_second="int" life_range="int" init_pos_volume="float 3" init_pos_volume_range="float 3" init_pos_radius="float" init_pos_radius_range="float" init_pos_degree="float" init_pos_degree_range="float" init_speed="float 3" init_speed_range="float 3" force="float 3" force_range="float 3" size="float 2" size_range="float 2" color="float 3" color_range="float 3" />
-			<default type="10" oid="0" eid="0" image="light.png" alpha="1" reborn="1" bornTargetTranformOID="80" count_once="5" count_period="10" count_total="100" count_range="0" life_second="2" life_range="5" init_pos_volume="1 0.5 0" init_pos_volume_range="0 0 0" init_pos_radius="0" init_pos_radius_range="0" init_pos_degree="0" init_pos_degree_range="0" init_speed="-0.3 -0.3 1" init_speed_range="0.6 0.6 2" force="0 0 -2" force_range="0 0 1" size="0.6 0.6" size_range="0 0" color="0 0 0" color_range="1 1 1" />
+            <default type="10" oid="0" eid="0" image="light.png" alpha="1" reborn="1" bornTargetTranformOID="80" count_once="5" count_period="10" count_total="100" count_range="0" life_second="2" life_range="5" init_pos_volume="1 0.5 0" init_pos_volume_range="0 0 0" init_pos_radius="0" init_pos_radius_range="0" init_pos_degree="0" init_pos_degree_range="0" init_speed="-0.3 -0.3 1" init_speed_range="0.6 0.6 2" force="0 0 -2" force_range="0 0 1" size="0.6 0.6" size_range="0 0" color="0 0 0" color_range="1 1 1" />
         </Particle>
         <Material>
             <define vert="std::string" tesc="std::string" tese="std::string" geom="std::string" frag="std::string" alpha="bool" baseColor="float 4" baseValueRate="float" metallic="float" roughness="float" emissive="float" baseMap="std::string" cubeMap="std::string" normalMap="std::string" metallicRoughnessMap="std::string" />
@@ -920,7 +920,8 @@
             <AeUIBaseData position="int 2" size="int 2" alignType="enum" font_oid="ID" />
         </struct>
         <enum>
-            <type name="AE_GAMEOBJECT_TYPE"  prefix="eGAMEOBJECT_"/>
+            <result name="AeResult" prefix="AE_" SUCCESS="0" ERROR_UNKNOWN="1"/>
+            <type name="AE_GAMEOBJECT_TYPE" prefix="eGAMEOBJECT_"/>
             <renderType name="AE_RENDER_TYPE" prefix="eRENDER_" KHR="0" UI="1" Main="2" Color="3" MAX="4" />
             <lightType name="AE_LIGHT_TYPE" prefix="eLIGHT_" Point="0" Direction="1" Spot="2" />
             <actionState name="AE_ACTION_STATE" prefix="eACTION_" Stop="0" Play="1" Pause="2" />
@@ -939,7 +940,7 @@
     </setting>
     <!--WIP libUI-->
     <ui_sets>
-	    <define />
+        <define />
         <default type="5000" oid="0" eid="0">
             <config_editor type="4000" oid="1" eid="1" position="250 20" size="1024 768" alignType="4">
                 <components>
@@ -960,14 +961,14 @@
                 <children />
             </setting>
         </default>
-	    <render type="5000" oid="0" eid="1">
+        <render type="5000" oid="0" eid="1">
             <render type="4000" oid="3" eid="3" position="-100 50" size="1280 720" alignType="6">
                 <components>
                     <render type="3001" oid="1" eid="0" position="0 0" size="0 0" alignType="0" sceneEID="1" cameraOID="1"/>
                 </components>
                 <children />
             </render>
-		</render>
+        </render>
     </ui_sets>
     <!--WIP libUI-->
     <ui_windows>

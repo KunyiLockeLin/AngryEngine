@@ -4,6 +4,20 @@
 
 using ID = int;
 
+enum AeResult {
+    AE_SUCCESS = 0,
+    AE_ERROR_UNKNOWN = 1,
+};
+
+static inline const char* string_AeResult(AeResult type) {
+    switch (type) {
+        CASE_STR(AE_SUCCESS);
+        CASE_STR(AE_ERROR_UNKNOWN);
+        default:
+            ASSERT(0,"AE_INVALID");
+    }
+}
+
 enum AE_GAMEOBJECT_TYPE {
     eGAMEOBJECT_Scene = 2000,
     eGAMEOBJECT_Object = 1000,
