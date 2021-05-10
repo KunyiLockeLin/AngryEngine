@@ -108,9 +108,13 @@ class Rendering : public IGPUObject {
     VkSurfaceKHR surface_;
     AeResult create_surface();
 
-    std::vector<std::shared_ptr<Framebuffer>> frambuffers_;
-    std::vector<std::shared_ptr<RenderPass>> render_passes_;
-    std::vector<std::shared_ptr<GraphicsPipeline>> graphics_pipelines_;
+    struct RenderingLayer {
+        AE_RENDER_TYPE render_Type;
+        std::shared_ptr<Framebuffer> frambuffer_;
+        std::vector<std::shared_ptr<RenderPass>> render_passes_;
+        std::vector<std::shared_ptr<GraphicsPipeline>> graphics_pipelines_;
+    };
+    std::vector<RenderingLayer> rendering_layers_;
 
    public:
     AeResult initialize(const std::shared_ptr<Device> &device, const RenderingInfo &render_info);
@@ -129,6 +133,7 @@ class RenderPass : public IGPUObject {
 
    private:
     VkRenderPass render_pass_;
+    //DrawCommand draw_command_;
 };
 
 class IPipeline : public IGPUObject {
@@ -144,8 +149,22 @@ class GraphicsPipeline : public IPipeline {
    private:
 };
 /*
+class Command : public IGPUObject {
+   protected:
+    VkCommandBuffer command_buffer_;
+};
 
-class Model : public IGPUObject {
+class DrawCommand : public Command {
+    MANAGED_GPU_OBJECT(DrawCommand )
+};
+
+class Thread : public IGPUObject {};
+
+class Memory : public IGPUObject {
+   protected:
+};
+
+class Model : public Memory {
     MANAGED_GPU_OBJECT(Model)
 
    private:
@@ -158,26 +177,13 @@ class Model : public IGPUObject {
     virtual AeResult post_update() { return AE_SUCCESS; }
 };
 
-class Thread : public IGPUObject {};
 
-
-class Texture : public IGPUObject {
+class Texture : public Memory {
    private:
     VkImage image_;
     VkImageView image_view_;
 };
 
-class IPipeline : public IGPUObject {
-   protected:
-    VkPipeline pipeline_;
-    std::vector<VkShaderModule> shader_modules_
-    // std::vector<ShaderBindingSlot> shader_data_slots_;
-};
-
-class Brush : public IPipeline {
-   private:
-    // graphics pipeline
-};
 
 class Computer : public IPipeline {
    private:
