@@ -5,151 +5,198 @@
 #include <memory>
 #include <list>
 
-#include "vulkan_objects.h"
+#ifdef _WIN32
+#include <windows.h>
+#define VK_USE_PLATFORM_WIN32_KHR
+#endif  // _WIN32
+
+#include <vulkan/vulkan.hpp>
+
+#include "gpu.h"
 
 BEGIN_NAMESPACE(ae)
 BEGIN_NAMESPACE(gpu)
 BEGIN_NAMESPACE(object)
 
-enum GPU_OBJECT_TYPE {
-    GPU_OBJECT_DEVICE,
-    GPU_OBJECT_MODEL,
-};
-
 OBJECT_KEY(GPUObjectKey, Manager)
 
-class IGPUObject {
-   protected:
-    ID id_;
-    const GPU_OBJECT_TYPE type_;
-    bool active_;  // set active_ in initialize and cleanup
+#define MANAGED_SINGLETON_GPU_OBJECT(class_name) MANAGED_SINGLETON_OBJECT(class_name, GPUObjectKey)
+#define MANAGED_GPU_OBJECT(class_name) MANAGED_OBJECT(class_name, GPUObjectKey)
 
-    IGPUObject(const GPU_OBJECT_TYPE type) : type_(type), id_(0), active_(false) {}
+class IGPUObject : public common::IObject {
+   private:
+    const AeGPUType type_;
+
+   protected:
+    IGPUObject(const AeGPUType type) : common::IObject(), type_(type) {}
 
    public:
-    ID GetID() { return id_; }
-    GPU_OBJECT_TYPE GetType() { return type_; }
-    bool Active() { return active_; }
-
     IGPUObject(const IGPUObject &) = delete;
     IGPUObject &operator=(const IGPUObject &) = delete;
 
-    virtual AeResult initialize() = 0;
-    virtual AeResult cleanup() = 0;
-    virtual AeResult pre_update() = 0;
-    virtual AeResult post_update() = 0;
+    AeGPUType get_type() { return type_; }
+
+    virtual AeResult pre_update() { return AE_SUCCESS; }
+    virtual AeResult post_update() { return AE_SUCCESS; }
 };
 
+class Rendering;
 class Device : public IGPUObject {
-    SINGLETON_OBJECT(Device)
+    MANAGED_SINGLETON_GPU_OBJECT(Device)
 
    private:
-    std::shared_ptr<vk::Instance> instance_;
-    std::shared_ptr<vk::PhysicalDevice> physical_device_;
-    std::shared_ptr<vk::Device> device_;
-    std::shared_ptr<vk::Surface> surface_;
-    std::shared_ptr<vk::DebugReportCallback> debug_report_callback_;
+    DeviceInfo device_info_;
+
+    VkInstance instance_;
+    AeResult create_instance();
+    AeResult check_support_instance_layers(std::vector<const char *> &layers);
+    AeResult check_support_instance_extensions(std::vector<const char *> &extensions);
+
+    VkPhysicalDevice physical_device_;
+    VkPhysicalDeviceProperties2 phy_dev_props2_;
+    VkPhysicalDeviceFeatures2 phy_dev_feats2_;
+    AeResult pick_physical_device();
+
+    VkDevice device_;
+    AeResult create_device();
+    AeResult check_support_device_layers(std::vector<const char *> &layers);
+    AeResult check_support_device_extensions(std::vector<const char *> &extensions);
+    AeResult get_queue_family_props(std::vector<VkQueueFamilyProperties> &queue_props);
+
+    VkDebugReportCallbackEXT debug_report_callback_;
+    AeResult create_debug_report_callback();
 
    public:
-    virtual AeResult initialize() { return AE_SUCCESS; }
-    virtual AeResult cleanup() { return AE_SUCCESS; }
-    virtual AeResult pre_update() { return AE_SUCCESS; }
-    virtual AeResult post_update() { return AE_SUCCESS; }
+    AeResult initialize(const DeviceInfo &device_info);
+    const VkInstance &get_vk_instance();
+    const VkPhysicalDevice &get_vk_physical_device();
+    const VkDevice &get_vk_device();
+
+    static VkBool32 debug_report_callback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType, uint64_t object,
+                                          size_t location, int32_t messageCode, const char *pLayerPrefix, const char *pMessage,
+                                          void *pUserData);
+    AeResult initialize_rendering(const RenderingInfo &render_info, std::shared_ptr<Rendering> &rendering);
 };
 
-class Model : public IGPUObject {
-    MANAGED_OBJECT(Model, GPUObjectKey)
+class Queues : public IGPUObject {
+    MANAGED_SINGLETON_GPU_OBJECT(Queues)
 
    private:
-    std::shared_ptr<vk::Buffer> buffer_;
+    std::shared_ptr<Device> device_;
+
+    struct QueueFamily {
+        VkQueueFamilyProperties family_props_;
+        std::vector<VkQueue> queues_;
+    };
+    std::vector<QueueFamily> queue_familys_;
+    AeResult get_device_queues(const std::vector<VkQueueFamilyProperties> &queue_family_props);
 
    public:
-    virtual AeResult initialize() { return AE_SUCCESS; }
-    virtual AeResult cleanup() { return AE_SUCCESS; }
-    virtual AeResult pre_update() { return AE_SUCCESS; }
-    virtual AeResult post_update() { return AE_SUCCESS; }
+    AeResult initialize(const std::shared_ptr<Device> &device, const std::vector<VkQueueFamilyProperties> &queue_family_props);
 };
 
-class Texture : public IGPUObject {
+class Framebuffer;
+class RenderPass;
+class GraphicsPipeline;
+class Rendering : public IGPUObject {
+    MANAGED_SINGLETON_GPU_OBJECT(Rendering)
+
    private:
-    std::shared_ptr<vk::Image> image_;
-    std::shared_ptr<vk::ImageView> image_view_;
+    std::shared_ptr<Device> device_;
+    RenderingInfo render_info_;
+
+    VkSurfaceKHR surface_;
+    AeResult create_surface();
+
+    std::vector<std::shared_ptr<Framebuffer>> frambuffers_;
+    std::vector<std::shared_ptr<RenderPass>> render_passes_;
+    std::vector<std::shared_ptr<GraphicsPipeline>> graphics_pipelines_;
+
+   public:
+    AeResult initialize(const std::shared_ptr<Device> &device, const RenderingInfo &render_info);
+};
+
+class Framebuffer : public IGPUObject {
+    MANAGED_GPU_OBJECT(Framebuffer)
+
+   private:
+    VkFramebuffer frambuffer_;
+    // swapchain, depth, stencil;
+};
+
+class RenderPass : public IGPUObject {
+    MANAGED_GPU_OBJECT(RenderPass)
+
+   private:
+    VkRenderPass render_pass_;
 };
 
 class IPipeline : public IGPUObject {
    protected:
+    VkPipeline pipeline_;
+    std::vector<VkShaderModule> shader_modules_;
     // std::vector<ShaderBindingSlot> shader_data_slots_;
 };
 
 class GraphicsPipeline : public IPipeline {
-   private:
-    std::shared_ptr<vk::RenderPass> render_pass_;
-    std::shared_ptr<vk::GraphicsPipeline> pipeline_;
-    std::shared_ptr<vk::Framebuffer> frambuffer_;
+    MANAGED_GPU_OBJECT(GraphicsPipeline)
 
-    // std::vector<RenderPass> render_passes_;
+   private:
 };
+/*
 
-class ComputePipeline : public IPipeline {
-   private:
-    std::shared_ptr<vk::ComputePipeline> pipeline_;
-};
-
-#define MANAGE_GPU_OBJECT(gpu_object)                                                 \
-   private:                                                                           \
-    std::unordered_map<ID, std::shared_ptr<##gpu_object>> active_##gpu_object##_map_; \
-    std::list<std::shared_ptr<##gpu_object>> unactive_##gpu_object##_list_;           \
-                                                                                      \
-   public:                                                                            \
-    AeResult Create##gpu_object(std::shared_ptr<##gpu_object> &obj) {                 \
-        if (!unactive_##gpu_object##_list_.empty()) {                                 \
-            obj = unactive_##gpu_object##_list_.back();                               \
-            unactive_##gpu_object##_list_.pop_back();                                 \
-        } else {                                                                      \
-            obj = gpu_object## ::create(gpu_object_key_);                             \
-        }                                                                             \
-        obj->initialize();                                                            \
-        active_##gpu_object##_map_[obj->GetID()] = obj;                               \
-        return AE_SUCCESS;                                                            \
-    }                                                                                 \
-                                                                                      \
-    AeResult Get##gpu_object(const ID id, std::shared_ptr<##gpu_object> &obj) {       \
-        auto it = active_##gpu_object##_map_.find(id);                                \
-        if (it != active_##gpu_object##_map_.end()) {                                 \
-            obj = it->second;                                                         \
-            return AE_SUCCESS;                                                        \
-        }                                                                             \
-        return AE_ERROR_UNKNOWN;                                                      \
-    }                                                                                 \
-                                                                                      \
-    AeResult Remove##gpu_object(const ID id) {                                        \
-        auto it = active_##gpu_object##_map_.find(id);                                \
-        if (it != active_##gpu_object##_map_.end()) {                                 \
-            it->second->cleanup();                                                    \
-            unactive_##gpu_object##_list_.push_back(it->second);                      \
-            active_##gpu_object##_map_.erase(it);                                     \
-            return AE_SUCCESS;                                                        \
-        }                                                                             \
-        return AE_ERROR_UNKNOWN;                                                      \
-    }
-
-class Manager {
-    SINGLETON_OBJECT(Manager)
-    MANAGE_GPU_OBJECT(Model)
+class Model : public IGPUObject {
+    MANAGED_GPU_OBJECT(Model)
 
    private:
-    const GPUObjectKey gpu_object_key_;
+    VkBuffer buffer_;
+    ModelInfo model_info_;
 
    public:
-    Manager(const Manager &) = delete;
-    Manager &operator=(const Manager &) = delete;
-
-    AeResult initialize() { return AE_SUCCESS; }
-    AeResult cleanup() { return AE_SUCCESS; }
-    AeResult pre_update() { return AE_SUCCESS; }
-    AeResult post_update() { return AE_SUCCESS; }
+    virtual AeResult initialize(ModelInfo &model_info);
+    virtual AeResult pre_update() { return AE_SUCCESS; }
+    virtual AeResult post_update() { return AE_SUCCESS; }
 };
-#define MGR Manager::get_instance()
+
+class Thread : public IGPUObject {};
+
+
+class Texture : public IGPUObject {
+   private:
+    VkImage image_;
+    VkImageView image_view_;
+};
+
+class IPipeline : public IGPUObject {
+   protected:
+    VkPipeline pipeline_;
+    std::vector<VkShaderModule> shader_modules_
+    // std::vector<ShaderBindingSlot> shader_data_slots_;
+};
+
+class Brush : public IPipeline {
+   private:
+    // graphics pipeline
+};
+
+class Computer : public IPipeline {
+   private:
+    // computer pipeline
+};
+*/
+#define MANAGE_GPU_OBJECT(class_name) MANAGE_OBJECT(Manager, ID, class_name)
+
+class Manager {
+    INITIALIZE_MANAGER(Manager, GPUObjectKey)
+    MANAGE_GPU_OBJECT(Framebuffer)
+    MANAGE_GPU_OBJECT(RenderPass)
+    MANAGE_GPU_OBJECT(GraphicsPipeline)
+
+   public:
+    AeResult pre_update();
+    AeResult post_update();
+};
+#define GPU_MGR Manager::get_instance()
 
 END_NAMESPACE(object)
 END_NAMESPACE(gpu)

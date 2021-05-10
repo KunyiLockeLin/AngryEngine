@@ -27,6 +27,7 @@ set_target_properties(lib_common PROPERTIES OUTPUT_NAME_DEBUG common_debug)
 set_target_properties(lib_common PROPERTIES OUTPUT_NAME_RELEASE common)
 target_compile_features(lib_common PRIVATE ${cpp_version})
 
+target_include_directories(lib_common PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(lib_common Dbghelp)
 set(DEBUG_common ${CMAKE_CURRENT_SOURCE_DIR}/build/Debug/common_debug.dll)
 set(RELEASE_common ${CMAKE_CURRENT_SOURCE_DIR}/build/Release/common.dll)
@@ -66,7 +67,7 @@ target_link_libraries(exe_TestUI PRIVATE debug common_debug optimized common)
 
 
 #lib gpu
-add_library(lib_gpu SHARED gpu/vulkan_objects.h gpu/vulkan_objects.cpp gpu/gpu_objects.h gpu/gpu_objects.cpp gpu/gpu.h gpu/gpu.cpp)
+add_library(lib_gpu SHARED gpu/gpu_objects.h gpu/gpu_objects.cpp gpu/gpu.h gpu/gpu.cpp)
 
 set_target_properties(lib_gpu PROPERTIES LINK_FLAGS /SUBSYSTEM:CONSOLE)
 set_target_properties(lib_gpu PROPERTIES OUTPUT_NAME_DEBUG gpu_debug)
@@ -84,7 +85,7 @@ add_custom_command(TARGET lib_ui POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_
 
 
 #exe TestGPU
-add_executable(exe_TestGPU gpu/vulkan_objects.h gpu/vulkan_objects.cpp gpu/gpu_objects.h gpu/gpu_objects.cpp  gpu/gpu.h gpu/gpu.cpp gpu/test_main.cpp)
+add_executable(exe_TestGPU gpu/gpu_objects.h gpu/gpu_objects.cpp  gpu/gpu.h gpu/gpu.cpp gpu/test_main.cpp)
 
 set_target_properties(exe_TestGPU PROPERTIES LINK_FLAGS /SUBSYSTEM:WINDOWS)
 set_target_properties(exe_TestGPU PROPERTIES OUTPUT_NAME_DEBUG TestGPU_debug)

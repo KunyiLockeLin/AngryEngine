@@ -447,7 +447,7 @@ void AeCommonManager::removeXML(std::string path) {
 std::vector<char> AeCommonManager::loadFile(const char *_filePath) {
     std::vector<char> ret;
     std::ifstream file(_filePath, std::ios::ate | std::ios::binary);
-    ASSERT(file.is_open(), _filePath)
+    ASSERT(file.is_open(), _filePath);
     // if (!file.is_open()) return ret;
 
     file.seekg(0, file.end);
@@ -489,3 +489,29 @@ AeXMLNode *AeCommonManager::getXML(const char *_filePath) {
 
     return head;
 }
+
+BEGIN_NAMESPACE(ae)
+BEGIN_NAMESPACE(common)
+
+ID get_serial_number() {
+    static ID serial_number = 0;
+    ++serial_number;
+    return serial_number;
+}
+
+IObject::IObject() : id_(get_serial_number()), active_(false) {}
+
+ID IObject::get_id() { return id_; }
+bool IObject::active() { return active_; }
+
+AeResult IObject::initialize() {
+    active_ = true;
+    return AE_SUCCESS;
+}
+AeResult IObject::cleanup() {
+    active_ = false;
+    return AE_SUCCESS;
+}
+
+END_NAMESPACE(common)
+END_NAMESPACE(ae)

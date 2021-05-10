@@ -85,7 +85,7 @@ bool AeFile::open(const char *output_path_) {
         _mkdir(output_dir.c_str());
     }
     ofile->open(output_path_);
-    ASSERT(!ofile->fail(), output_path_)
+    ASSERT(!ofile->fail(), output_path_);
     return true;
 }
 

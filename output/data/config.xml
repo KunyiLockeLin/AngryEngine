@@ -913,7 +913,7 @@
     </shaders>
     <code_define>
         <using>
-            <ID type="int" />
+            <ID type="uint64_t" />
         </using>
         <struct>
             <AeBaseData name="std::string" type="enum" oid="ID" eid="ID" />
@@ -921,6 +921,7 @@
         </struct>
         <enum>
             <result name="AeResult" prefix="AE_" SUCCESS="0" ERROR_UNKNOWN="1"/>
+            <result name="AeGPUType" prefix="AE_GPU_" DEVICE="0" QUEUE="1"  RENDERING="2" MODEL="3"/>
             <type name="AE_GAMEOBJECT_TYPE" prefix="eGAMEOBJECT_"/>
             <renderType name="AE_RENDER_TYPE" prefix="eRENDER_" KHR="0" UI="1" Main="2" Color="3" MAX="4" />
             <lightType name="AE_LIGHT_TYPE" prefix="eLIGHT_" Point="0" Direction="1" Spot="2" />
@@ -929,7 +930,7 @@
             <planeType name="AE_PLANE_TYPE" prefix="ePLANE_" D3D="0" Billboard="1" D2D="2" />
             <alignType name="AE_ALIGN_TYPE" prefix="eALIGN_" Top_Left="0" Top_Middle="1" Top_Right="2" Middle_Left="3" Middle_Middle="4" Middle_Right="5" Bottom_Left="6" Bottom_Middle="7" Bottom_Right="8" />
         </enum>
-        <Vulkan_Validation_Layers VK_LAYER_KHRONOS_validation="1" VK_LAYER_LUNARG_standard_validation="1" VK_LAYER_RENDERDOC_Capture="0"/>
+        <Vulkan_Validation_Layers VK_LAYER_KHRONOS_validation="1" VK_LAYER_KHRONOS_synchronization2="0"  VK_LAYER_LUNARG_standard_validation="0" VK_LAYER_RENDERDOC_Capture="0"/>
         <VkDescriptorSetLayout />
     </code_define>
     <setting>
@@ -944,7 +945,7 @@
         <default type="5000" oid="0" eid="0">
             <config_editor type="4000" oid="1" eid="1" position="250 20" size="1024 768" alignType="4">
                 <components>
-                    <xml type="3009" oid="1" eid="1" position="0 0"size="0 0" alignType="0" font_oid="7" path="data\config.xml"/>
+                    <xml type="3009" oid="1" eid="1" position="0 0" size="0 0" alignType="0" font_oid="7" path="data\config.xml"/>
                 </components>
                 <children />
             </config_editor>

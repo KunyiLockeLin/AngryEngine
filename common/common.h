@@ -78,32 +78,6 @@
     component_data.read(*_property); \
 */
 
-#define BEGIN_NAMESPACE(x) namespace x {
-#define END_NAMESPACE(x) }
-
-#define SINGLETON_OBJECT(class_name)    \
-   private:                             \
-    class_name();                       \
-                                        \
-   public:                              \
-    static class_name &get_instance() { \
-        static class_name instance;     \
-        return instance;                \
-    }
-
-#define OBJECT_KEY(class_name, friend_name) \
-    class DllExport class_name {            \
-        friend class friend_name;           \
-                                            \
-       private:                             \
-        class_name() {}                     \
-    };
-
-#define MANAGED_OBJECT(class_name, key_name) \
-   public:                                   \
-    class_name(const key_name &key);         \
-    static std::shared_ptr<class_name> create(const key_name &key) { return std::make_shared<class_name>(key); }
-
 // template class DllExport std::vector<std::string>;
 // template class DllExport std::basic_string<char>;
 
@@ -642,7 +616,7 @@ class DllExport AeLog {
                    const char *output_path_xml_setting_path = "setting.path.log");
     void switchOutput(bool turn_on, const char *output_path = nullptr);
     std::string stack(int from, int to);
-    void print(std::string &msg, bool bShowStack = false, int stackLevel = 5);
+    void print(std::string &msg, bool bShowStack = false, int stackLevel = 9);
 
     bool isOutput();
 };
@@ -651,6 +625,7 @@ class DllExport AeLog {
 #define STACK(msg) LOGOBJ.print(std::string("") + msg, true)
 // std::terminate();
 
+// TODO: renew assert to exception
 #ifndef NDEBUG
 /*
 static void setterminate() {
@@ -666,17 +641,32 @@ std::set_terminate(setterminate);
         oss << ": " << strerror(errno);                                                                    \
         errno = 0;                                                                                         \
     }                                                                                                      \
-    STACK(oss.str());                                                                                      \
-    std::terminate();
+    throw std::runtime_error(oss.str())
 
-#define ASSERT(condition, message)       \
-    if (!(condition)) {                  \
-        ASSERT_PRINT(condition, message) \
-    }
+#define ASSERT(condition, message)           \
+    do {                                     \
+        if (!(condition)) {                  \
+            ASSERT_PRINT(condition, message);\
+        }                                    \
+    } while (false)
+
 #define ASSERT_NULL(condition) ASSERT(condition, "NULL")
+
+#define ASSERT_RESULT(condition, result, pass)                                     \
+    do {                                                                           \
+        const result resolved_err = condition;                                     \
+        if (resolved_err != pass) {                                                \
+            std::ostringstream osss;                                               \
+            osss << string_##result##(resolved_err) << "(" << resolved_err << ")"; \
+            ASSERT_PRINT(condition, osss.str());                                   \
+        }                                                                          \
+    } while (false);
+
+#define ASSERT_SUCCESS(condition) ASSERT_RESULT(condition, AeResult, AE_SUCCESS)
 #else
-#define ASSERT(condition, message)
-#define ASSERT_NULL(condition)
+#define ASSERT(condition, message) condition;
+#define ASSERT_NULL(condition) condition;
+#define ASSERT_SUCCESS(condition) condition;
 #endif
 
 namespace AeLib {
@@ -699,5 +689,154 @@ template <class T>
 bool DllExport eraseElementFromVector(std::vector<T> &vec, T element);
 };  // namespace AeLib
 using namespace AeLib;
+
+#include "code_generator/generated_config_struct_enum.h"
+
+#define BEGIN_NAMESPACE(x) namespace x {
+#define END_NAMESPACE(x) }
+
+BEGIN_NAMESPACE(ae)
+BEGIN_NAMESPACE(common)
+
+#define SINGLETON_OBJECT(class_name)    \
+   private:                             \
+    class_name();                       \
+                                        \
+   public:                              \
+    static class_name &get_instance() { \
+        static class_name instance;     \
+        return instance;                \
+    }
+
+#define OBJECT_KEY(class_name, friend_name) \
+    class DllExport class_name {            \
+        friend class friend_name;           \
+                                            \
+       private:                             \
+        class_name() {}                     \
+    };
+
+#define MANAGED_SINGLETON_OBJECT(class_name, key_name)                                   \
+   public:                                                                               \
+    class_name(const key_name &key);                                                     \
+    static std::shared_ptr<class_name> get_instance(const key_name &key) {               \
+        static std::shared_ptr<class_name> instance = std::make_shared<class_name>(key); \
+        return instance;                                                                 \
+    }
+
+#define MANAGED_OBJECT(class_name, key_name) \
+   public:                                   \
+    class_name(const key_name &key);         \
+    static std::shared_ptr<class_name> create(const key_name &key) { return std::make_shared<class_name>(key); }
+
+// TODO: This marco is too large. Change it to inherit or something else.
+#define INITIALIZE_MANAGER(mgr_name, key_name)                          \
+    SINGLETON_OBJECT(mgr_name)                                          \
+                                                                        \
+   private:                                                             \
+    const key_name key_;                                                \
+                                                                        \
+    template <typename class_name, typename dummy = int>                \
+    struct ManageObject {};                                             \
+                                                                        \
+   public:                                                              \
+    mgr_name(const mgr_name &) = delete;                                \
+    mgr_name &operator=(const mgr_name &) = delete;                     \
+                                                                        \
+    template <typename T>                                               \
+    AeResult get(std::shared_ptr<T> &obj) {                             \
+        obj = T::get_instance(key_);                                    \
+        return AE_SUCCESS;                                              \
+    }                                                                   \
+                                                                        \
+    template <typename T>                                               \
+    AeResult create(std::shared_ptr<T> &obj) {                          \
+        auto active_map = this->*(ManageObject<T>::active_map());       \
+        auto unactive_list = this->*(ManageObject<T>::unactive_list()); \
+                                                                        \
+        if (!unactive_list.empty()) {                                   \
+            obj = unactive_list.back();                                 \
+            unactive_list.pop_back();                                   \
+        } else {                                                        \
+            obj = T::create(key_);                                      \
+        }                                                               \
+        obj->initialize();                                              \
+        active_map[obj->get_id()] = obj;                                \
+        return AE_SUCCESS;                                              \
+    }                                                                   \
+                                                                        \
+    template <typename T, typename K>                                   \
+    AeResult find(const K &key, std::shared_ptr<T> &obj) {              \
+        auto active_map = this->*(ManageObject<T>::active_map());       \
+                                                                        \
+        auto it = active_map.find(key);                                 \
+        if (it != active_map.end()) {                                   \
+            obj = it->second;                                           \
+            return AE_SUCCESS;                                          \
+        }                                                               \
+        return AE_ERROR_UNKNOWN;                                        \
+    }                                                                   \
+                                                                        \
+    template <typename T, typename K>                                   \
+    AeResult remove(const K &key) {                                     \
+        auto active_map = this->*(ManageObject<T>::active_map());       \
+        auto unactive_list = this->*(ManageObject<T>::unactive_list()); \
+                                                                        \
+        auto it = active_map.find(key);                                 \
+        if (it != active_map.end()) {                                   \
+            it->second->cleanup();                                      \
+            unactive_list.push_back(it->second);                        \
+            active_map.erase(it);                                       \
+            return AE_SUCCESS;                                          \
+        }                                                               \
+        return AE_ERROR_UNKNOWN;                                        \
+    }                                                                   \
+                                                                        \
+    template <typename T>                                               \
+    AeResult remove(const std::shared_ptr<T> &obj) {                    \
+        return remove<T>(obj->get_id());                                \
+    }                                                                   \
+                                                                        \
+    AeResult initialize();                                              \
+    AeResult cleanup();
+
+#define MANAGE_OBJECT(mgr_name, key_name, class_name)                                              \
+   private:                                                                                        \
+    std::unordered_map<key_name, std::shared_ptr<class_name>> active_##class_name##_map_;          \
+    std::list<std::shared_ptr<class_name>> unactive_##class_name##_list_;                          \
+                                                                                                   \
+    template <typename dummy>                                                                      \
+    struct ManageObject<class_name, dummy> {                                                       \
+        static std::unordered_map<key_name, std::shared_ptr<class_name>> mgr_name::*active_map() { \
+            return &mgr_name::active_##class_name##_map_;                                          \
+        }                                                                                          \
+        static std::list<std::shared_ptr<class_name>> mgr_name::*unactive_list() {                 \
+            return &mgr_name::unactive_##class_name##_list_;                                       \
+        }                                                                                          \
+    };
+
+ID DllExport get_serial_number();
+
+class DllExport IObject {
+   private:
+    const ID id_;
+    bool active_;
+
+   protected:
+    IObject();
+
+   public:
+    IObject(const IObject &) = delete;
+    IObject &operator=(const IObject &) = delete;
+
+    ID get_id();
+    bool active();
+
+    virtual AeResult initialize();
+    virtual AeResult cleanup();
+};
+
+END_NAMESPACE(common)
+END_NAMESPACE(ae)
 
 #include "template_define.h"
